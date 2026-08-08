@@ -2,6 +2,8 @@
 
 Volledig gratis, lokaal draaiend pipeline om scripts (zoals `episodes/episode-01-het-portaal/script.md`) om te zetten in een geanimeerde video. Vereist een eigen machine met een NVIDIA GPU (minimaal 8GB VRAM, 12GB+ aanbevolen). Op Mac (M-series) kan het meeste ook, maar trager.
 
+> **Update:** AnimateDiff is verwijderd (te instabiel, personage-vervorming). Beweging komt nu uit pan/zoom op stilstaande SDXL-beelden — zie `ken-burns-workflow.md` voor stap 2 en 3 hieronder in detail.
+
 ---
 
 ## 1. Vereisten checken
@@ -43,10 +45,7 @@ Open daarna `http://127.0.0.1:8188` in je browser — dat is je werkomgeving.
 Zet in `ComfyUI/models/checkpoints/`:
 - **SDXL** (basis beeldmodel) — https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0
 
-Zet in `ComfyUI/models/animatediff_models/` (via ComfyUI-AnimateDiff-Evolved custom node, zie stap 4):
-- **AnimateDiff SDXL motion module** — voor het animeren van stilstaande beelden tot korte clips (2-4 sec)
-
-Alternatief voor langere/betere clips (zwaarder op VRAM): **CogVideoX-5B** (text/image-to-video, lokaal via ComfyUI node).
+Dat is alles wat je nodig hebt voor beeldgeneratie — geen motion module meer. Beweging voegen we later toe via pan/zoom in de montage (zie `ken-burns-workflow.md`).
 
 ---
 
@@ -57,8 +56,7 @@ cd ComfyUI/custom_nodes
 git clone https://github.com/ltdrdata/ComfyUI-Manager.git
 ```
 Herstart ComfyUI, open Manager in de UI, en installeer via "Install Custom Nodes":
-- **ComfyUI-AnimateDiff-Evolved** (image → korte animatie)
-- **ComfyUI-VideoHelperSuite** (clips exporteren als mp4)
+- **ComfyUI-VideoHelperSuite** (nuttig als je later toch nog een paar cloud-gegenereerde clips exporteert, zie `ken-burns-workflow.md` sectie 4)
 - **efficiency-nodes-comfyui** (workflow-snelheid)
 
 ---
@@ -84,12 +82,11 @@ Dit is de belangrijkste stap voor kwaliteit — zonder LoRA is consistentie het 
 
 ## 6. Workflow per shot (herhaal per scene uit het script)
 
-1. **Beeld genereren** in ComfyUI met SDXL + Nobi-LoRA, prompt gebaseerd op de scene-regie in het script (bijv. Scene 1, Shot 2: "close-up Nobi verbaasd gezicht").
-2. **Animeren** met AnimateDiff: laad het beeld, genereer een clip van 2-4 seconden met lichte camerabeweging/actie.
-3. **Exporteren** als losse mp4 via VideoHelperSuite node, bestandsnaam volgens scene (`s1-shot2.mp4`).
-4. Herhaal voor alle ±40-60 shots die een script van 10 minuten nodig heeft (reken op 1 clip per 8-12 seconden eindresultaat).
+1. **Beeld genereren** in ComfyUI met SDXL + Nobi-LoRA, prompt gebaseerd op de scene-regie in het script (bijv. Scene 1, Shot 2: "close-up Nobi verbaasd gezicht"). Exporteer als PNG, bestandsnaam volgens scene (`s1-shot2.png`).
+2. **Pan/zoom toevoegen** in DaVinci Resolve of via FFmpeg — zie `ken-burns-workflow.md` sectie 3 voor de volledige uitleg.
+3. Herhaal voor alle ±40-60 shots die een script van 10 minuten nodig heeft (reken op 1 beeld per 8-12 seconden eindresultaat).
 
-**Tip:** begin met stilstaande "camera-pan" shots (goedkoper qua rekenkracht) en gebruik AnimateDiff alleen voor de shots waar echt beweging nodig is (rennen, springen, portal-warp).
+**Tip:** genereer bewegende shots (rennen, springen, portal-warp) op het climax-moment van de actie — dat oogt dynamisch, ook als stilstaand beeld. Zie `ken-burns-workflow.md` sectie 4 voor de paar shots waar je alsnog echte AI-beweging (cloud) wil overwegen.
 
 ---
 
@@ -136,7 +133,7 @@ ffmpeg -f concat -safe 0 -i shotlist.txt -c copy episode-01-raw.mp4
 |---|---|
 | ComfyUI + modellen installeren | 2-4 uur |
 | LoRA trainen | 1-2 uur (grotendeels wachttijd) |
-| Beelden + clips genereren (10 min episode, ~50 shots) | 1-3 dagen (afhankelijk van GPU) |
+| Beelden genereren (10 min episode, ~50 shots) + pan/zoom in montage | 1-2 dagen (afhankelijk van GPU, sneller dan AnimateDiff-clips) |
 | Voice-over + muziek | 2-4 uur |
 | Monteren | 3-6 uur |
 
