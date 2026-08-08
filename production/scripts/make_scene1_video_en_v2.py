@@ -38,7 +38,6 @@ SHOTS = [
         "z_expr": "min(zoom+0.0022,1.2)",
         "x_expr": "iw/2-(iw/zoom/2)",
         "y_expr": "ih/2-(ih/zoom/2)",
-        "pad": True,
     },
     {
         "name": "s1-shot3",
