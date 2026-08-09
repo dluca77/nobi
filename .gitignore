@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 production/voices/
 production/tts_venv/
+*.blend1
